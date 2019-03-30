@@ -9,7 +9,7 @@ struct Cli {
     cmd: String,
 }
 
-fn github() {
+fn get_local_github_url() -> String {
 
     let v = vec!["/home"];
 
@@ -31,14 +31,23 @@ fn github() {
     println!("found remote origin: {:?}", origin_git_url);
 
     let origin_https = origin_git_url.replace(".git", "").replace(":", "/").replace("git@", "https://");
-    Command::new("xdg-open").arg(origin_https).spawn();
+    return origin_https;
+}
+
+fn travis() {
+    let travis_url = get_local_github_url().replace("github.com", "travis-ci.org");
+    Command::new("xdg-open").arg(travis_url).spawn();
+}
+
+fn github() {
+    Command::new("xdg-open").arg(get_local_github_url()).spawn();
 }
 
 fn main() -> CliResult {
     let args = Cli::from_args();
     match args.cmd.as_ref() {
         "github" => github(),
-        "travis" => println!("travis command wip"),
+        "travis" => travis(),
         _ => println!("Not supported command"),
     }
 
