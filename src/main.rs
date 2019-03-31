@@ -14,7 +14,12 @@ use derive_more::From as DeriveFrom;
 #[derive(Debug, StructOpt)]
 struct Cli {
     cmd: String,
+
+    #[structopt(long = "search", short = "s")]
+    search: String,
 }
+
+const RUST_DOC_HTTP: &str = "https://doc.rust-lang.org/std/result/?search=";
 
 #[derive(Debug, DeriveFrom, Fail)]
 pub enum Error {
@@ -55,11 +60,22 @@ fn github() -> Result<(), Error> {
     Ok(())
 }
 
+fn rust(doc_search: String) -> Result<(), Error> {
+    
+    let rust_doc_url = format!("{}{}", RUST_DOC_HTTP, doc_search);
+    let mut process = Command::new("xdg-open").arg(rust_doc_url).spawn()?;
+    process.wait().expect("waiting for command to finish");
+    println!("github has opened sucessfully");
+
+    Ok(())
+}
+
 fn main() -> CliResult {
     let args = Cli::from_args();
     match args.cmd.as_ref() {
         "github" => github()?,
         "travis" => travis()?,
+        "rust" => rust(args.search)?,
         _ => println!("Not supported command"),
     }
 
