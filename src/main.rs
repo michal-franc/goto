@@ -15,15 +15,15 @@ use derive_more::From as DeriveFrom;
 struct Cli {
     cmd: String,
 
-    #[structopt(long = "search", short = "s")]
+    #[structopt(long = "search", short = "s", default_value= "")]
     search: String,
 }
 
-const RUST_DOC_HTTP: &str = "https://doc.rust-lang.org/std/result/?search=";
+const RUST_DOC_HTTP: &str = "https://doc.rust-lang.org/std/index.html?search=";
 
 #[derive(Debug, DeriveFrom, Fail)]
 pub enum Error {
-    #[fail(display = "git2 error - {}", _0)]
+    #[fail(display = "git error - {}", _0)]
     Git2Error(#[cause] git2::Error),
     
     #[fail(display = "No origin url found")]
