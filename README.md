@@ -15,6 +15,9 @@ At the moment it supports 3 commands:
 `rust -s arg`
 - open up browser with rust std docs using `arg` as a param to search for
 
+`<any other name>`
+- looks for the key in ~/.config/goto/urls.json and tries to open website if key exist
+
 ## Install
 
 To install - by default it moves the binary to `/usr/local/bin`
