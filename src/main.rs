@@ -99,7 +99,7 @@ fn url(url_key: &str) -> Result<(), Error> {
         println!("url opened");
     } else {
         println!("url not found for: {}", url_key);
-        println!("add new url at ~/.config/goto/urls.json: {}", url_key);
+        println!("add new url at ~/.config/goto/urls.json");
     }
 
     Ok(())
