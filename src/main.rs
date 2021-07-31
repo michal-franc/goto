@@ -34,6 +34,9 @@ pub enum Error {
     #[fail(display = "No origin url found")]
     OriginUrlNotFound,
 
+    #[fail(display = "Origin format not supported")]
+    OriginFormatNotSupported,
+
     #[fail(display = "No homedir could be found")]
     HomeDirNotFound,
 
@@ -45,8 +48,11 @@ fn get_local_github_url() -> Result<String, Error> {
     let repo = Repository::open_ext(".", RepositoryOpenFlags::empty(), vec!["/home"])?;
     let origin = repo.find_remote("origin")?;
     let origin_git_url = origin.url().ok_or(Error::OriginUrlNotFound)?;
-    let origin_https = origin_git_url.replace(".git", "").replace(":", "/").replace("git@", "https://");
-    return Ok(origin_https);
+    let find_index = origin_git_url.find(':').ok_or(Error::OriginFormatNotSupported)?;
+    let origin_https = origin_git_url[find_index+1..].replace(".git", "");
+    let mut github_hostname: String = "https://github.com/".to_string();
+    github_hostname.push_str(&origin_https);
+    return Ok(github_hostname);
 }
 
 fn travis() -> Result<(), Error>{
