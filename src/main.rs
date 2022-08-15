@@ -22,6 +22,9 @@ struct Cli {
 
     #[structopt(long = "search", short = "s", default_value= "")]
     search: String,
+
+    #[structopt(long = "commit", short = "c", default_value= "")]
+    commit: String,
 }
 
 const RUST_DOC_HTTP: &str = "https://doc.rust-lang.org/std/index.html?search=";
@@ -32,10 +35,11 @@ pub enum Error {
     Git2Error(#[cause] git2::Error),
     
     #[fail(display = "No origin url found")]
-    OriginUrlNotFound,
-
-    #[fail(display = "Origin format not supported")]
+    OriginUrlNotFound, #[fail(display = "Origin format not supported")]
     OriginFormatNotSupported,
+
+    #[fail(display = "Unable to acquire github url")]
+    ErrorWhenAcquiringUrl,
 
     #[fail(display = "No homedir could be found")]
     HomeDirNotFound,
@@ -55,6 +59,17 @@ fn get_local_github_url() -> Result<String, Error> {
     return Ok(github_hostname);
 }
 
+fn get_local_github_url_with_commit(commit_hash: String) -> Result<String, Error> {
+    let mut github_url: String = match get_local_github_url() {
+        Ok(s) => s,
+        Err(e) => return Err(e),
+    };
+    let commit_value: &str = "/commit/";
+    github_url.push_str(commit_value);
+    github_url.push_str(&commit_hash.to_owned());
+    return Ok(github_url);
+}
+
 fn travis() -> Result<(), Error>{
     let github_url = get_local_github_url()?;
     let travis_url = github_url.replace("github.com", "travis-ci.org");
@@ -65,8 +80,15 @@ fn travis() -> Result<(), Error>{
     Ok(())
 }
 
-fn github() -> Result<(), Error> {
-    let github_url = get_local_github_url()?;
+fn github(commit: String) -> Result<(), Error> {
+    let github_url:String;
+
+    if commit != "" {
+        github_url = get_local_github_url_with_commit(commit)?;
+    } else {
+        github_url = get_local_github_url()?;
+    }
+
     let mut process = Command::new("xdg-open").arg(github_url).spawn()?;
     process.wait().expect("waiting for command to finish");
     println!("github has opened sucessfully");
@@ -115,7 +137,7 @@ fn main() -> CliResult {
 
     let args = Cli::from_args();
     match args.cmd.as_ref() {
-        "github" => github()?,
+        "github" => github(args.commit)?,
         "travis" => travis()?,
         "rust" => rust(args.search)?,
         _ => url(&args.cmd)?,

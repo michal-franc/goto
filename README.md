@@ -9,6 +9,9 @@ At the moment it supports 3 commands:
 `github` 
 - opens up browser with `remote origin` and `master` branch url
 
+`github -c <hash>` 
+- opens up browser to specific commit in github
+
 `travis` 
 - open up browser with travis pointing to `origin` of your repo in the `master` branch
 
