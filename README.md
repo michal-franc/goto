@@ -33,3 +33,10 @@ To uninstall
 ```
 sudo make uninstall
 ```
+
+
+### Dependancies:
+
+```
+libssl-dev
+```
