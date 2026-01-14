@@ -4,20 +4,20 @@ use std::fs::File;
 use std::io;
 use std::path::Path;
 use std::process::Command;
-use structopt::StructOpt;
+use clap::{Parser, Subcommand};
 use thiserror::Error;
 
 use git2::Repository;
 use git2::RepositoryOpenFlags;
 
-#[derive(Debug, StructOpt)]
-#[structopt(
+#[derive(Debug, Parser)]
+#[command(
     name = "goto",
     about = "Quick navigation to web resources from your terminal.\n\n\
              Run from a git repository to open GitHub, Travis CI, or use custom URL shortcuts."
 )]
 enum Cli {
-    #[structopt(
+    #[command(
         name = "github",
         about = "Open the GitHub page for the current repository",
         long_about = "Open the GitHub page for the current repository.\n\n\
@@ -25,30 +25,30 @@ enum Cli {
                       The tool reads the 'origin' remote URL and opens it in your browser."
     )]
     Github {
-        #[structopt(short = "c", long = "commit", help = "Open a specific commit by hash")]
+        #[arg(short = 'c', long = "commit", help = "Open a specific commit by hash")]
         commit: Option<String>,
     },
 
-    #[structopt(
+    #[command(
         name = "travis",
         about = "Open the Travis CI page for the current repository"
     )]
     Travis,
 
-    #[structopt(
+    #[command(
         name = "rust",
         about = "Search the Rust standard library documentation"
     )]
     Rust {
-        #[structopt(
-            short = "s",
+        #[arg(
+            short = 's',
             long = "search",
             help = "Search term to look up in Rust docs"
         )]
         search: String,
     },
 
-    #[structopt(
+    #[command(
         name = "url",
         about = "Open a custom URL from your config file",
         long_about = "Open a custom URL from your config file.\n\n\
@@ -63,24 +63,24 @@ enum Cli {
                       }"
     )]
     Url {
-        #[structopt(help = "The key name for the URL (omit to list available keys)")]
+        #[arg(help = "The key name for the URL (omit to list available keys)")]
         key: Option<String>,
     },
 
-    #[structopt(name = "config", about = "Manage goto configuration")]
+    #[command(name = "config", about = "Manage goto configuration")]
     Config {
-        #[structopt(subcommand)]
+        #[command(subcommand)]
         cmd: ConfigCmd,
     },
 }
 
-#[derive(Debug, StructOpt)]
+#[derive(Debug, Subcommand)]
 enum ConfigCmd {
-    #[structopt(name = "url", about = "Add or update a URL shortcut")]
+    #[command(name = "url", about = "Add or update a URL shortcut")]
     Url {
-        #[structopt(help = "The key name for the URL")]
+        #[arg(help = "The key name for the URL")]
         key: String,
-        #[structopt(help = "The URL to open")]
+        #[arg(help = "The URL to open")]
         url: String,
     },
 }
@@ -275,7 +275,7 @@ fn url(url_key: Option<String>) -> Result<(), Error> {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let args = Cli::from_args();
+    let args = Cli::parse();
 
     match args {
         Cli::Github { commit } => github(commit)?,

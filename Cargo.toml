@@ -5,7 +5,7 @@ authors = ["Michal Franc <lam.michal.franc@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-structopt = "0.3"
+clap = { version = "4", features = ["derive"] }
 git2 = "0.20"
 thiserror = "2.0"
 serde_json = "1.0"
