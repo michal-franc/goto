@@ -44,7 +44,7 @@ sudo make uninstall # Remove from /usr/local/bin
 
 - Uses `xdg-open` to launch browser (Linux)
 - Git SSH URLs converted to HTTPS via `parse_git_origin_to_github_url()`
-- Error handling via `failure` crate with custom error types
+- Error handling via `thiserror` crate with custom error types
 - Config stored as JSON with `url_map` object
 - Tests in `#[cfg(test)] mod tests` at end of main.rs
 

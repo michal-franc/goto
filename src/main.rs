@@ -1,20 +1,14 @@
 use quicli::prelude::*;
-use structopt::StructOpt;
-use std::process::Command;
-
-use std::io;
 use std::collections::HashMap;
+use std::fs::File;
+use std::io;
+use std::path::Path;
+use std::process::Command;
+use structopt::StructOpt;
+use thiserror::Error;
 
 use git2::Repository;
 use git2::RepositoryOpenFlags;
-
-use failure::Fail;
-
-use serde_json;
-use std::path::Path;
-use std::fs::File;
-
-use derive_more::From as DeriveFrom;
 
 #[derive(Debug, StructOpt)]
 #[structopt(
@@ -31,11 +25,7 @@ enum Cli {
                       The tool reads the 'origin' remote URL and opens it in your browser."
     )]
     Github {
-        #[structopt(
-            short = "c",
-            long = "commit",
-            help = "Open a specific commit by hash"
-        )]
+        #[structopt(short = "c", long = "commit", help = "Open a specific commit by hash")]
         commit: Option<String>,
     },
 
@@ -77,10 +67,7 @@ enum Cli {
         key: Option<String>,
     },
 
-    #[structopt(
-        name = "config",
-        about = "Manage goto configuration"
-    )]
+    #[structopt(name = "config", about = "Manage goto configuration")]
     Config {
         #[structopt(subcommand)]
         cmd: ConfigCmd,
@@ -89,10 +76,7 @@ enum Cli {
 
 #[derive(Debug, StructOpt)]
 enum ConfigCmd {
-    #[structopt(
-        name = "url",
-        about = "Add or update a URL shortcut"
-    )]
+    #[structopt(name = "url", about = "Add or update a URL shortcut")]
     Url {
         #[structopt(help = "The key name for the URL")]
         key: String,
@@ -103,23 +87,25 @@ enum ConfigCmd {
 
 const RUST_DOC_HTTP: &str = "https://doc.rust-lang.org/std/index.html?search=";
 
-#[derive(Debug, DeriveFrom, Fail)]
+#[derive(Debug, Error)]
 pub enum Error {
-    #[fail(display = "git error - {}", _0)]
-    Git2Error(#[cause] git2::Error),
-    
-    #[fail(display = "No origin url found")]
-    OriginUrlNotFound, #[fail(display = "Origin format not supported")]
+    #[error("git error - {0}")]
+    Git2Error(#[from] git2::Error),
+
+    #[error("No origin url found")]
+    OriginUrlNotFound,
+
+    #[error("Origin format not supported")]
     OriginFormatNotSupported,
 
-    #[fail(display = "Unable to acquire github url")]
+    #[error("Unable to acquire github url")]
     ErrorWhenAcquiringUrl,
 
-    #[fail(display = "No homedir could be found")]
+    #[error("No homedir could be found")]
     HomeDirNotFound,
 
-    #[fail(display = "command error: {}", _0)]
-    IoError(#[cause] io::Error),
+    #[error("command error: {0}")]
+    IoError(#[from] io::Error),
 }
 
 /// Converts a git origin URL to a GitHub HTTPS URL
@@ -128,7 +114,9 @@ pub enum Error {
 fn parse_git_origin_to_github_url(origin_url: &str) -> Result<String, Error> {
     // Handle SSH format: git@github.com:user/repo.git
     if origin_url.starts_with("git@") {
-        let find_index = origin_url.find(':').ok_or(Error::OriginFormatNotSupported)?;
+        let find_index = origin_url
+            .find(':')
+            .ok_or(Error::OriginFormatNotSupported)?;
         let path = origin_url[find_index + 1..].replace(".git", "");
         return Ok(format!("https://github.com/{}", path));
     }
@@ -150,17 +138,13 @@ fn get_local_github_url() -> Result<String, Error> {
 }
 
 fn get_local_github_url_with_commit(commit_hash: String) -> Result<String, Error> {
-    let mut github_url: String = match get_local_github_url() {
-        Ok(s) => s,
-        Err(e) => return Err(e),
-    };
-    let commit_value: &str = "/commit/";
-    github_url.push_str(commit_value);
-    github_url.push_str(&commit_hash.to_owned());
-    return Ok(github_url);
+    let mut github_url = get_local_github_url()?;
+    github_url.push_str("/commit/");
+    github_url.push_str(&commit_hash);
+    Ok(github_url)
 }
 
-fn travis() -> Result<(), Error>{
+fn travis() -> Result<(), Error> {
     let github_url = get_local_github_url()?;
     let travis_url = github_url.replace("github.com", "travis-ci.org");
     let mut process = Command::new("xdg-open").arg(travis_url).spawn().unwrap();
@@ -184,7 +168,6 @@ fn github(commit: Option<String>) -> Result<(), Error> {
 }
 
 fn rust(doc_search: String) -> Result<(), Error> {
-    
     let rust_doc_url = format!("{}{}", RUST_DOC_HTTP, doc_search);
     let mut process = Command::new("xdg-open").arg(rust_doc_url).spawn()?;
     process.wait().expect("waiting for command to finish");
