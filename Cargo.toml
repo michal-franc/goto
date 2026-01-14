@@ -5,11 +5,10 @@ authors = ["Michal Franc <lam.michal.franc@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-quicli = "0.4"
-structopt = "0.2"
-git2 = "0.8"
-thiserror = "1.0"
-serde_json = "1.0.39"
-serde = "1.0.90"
-dirs = "1.0.5"
+structopt = "0.3"
+git2 = "0.20"
+thiserror = "2.0"
+serde_json = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+dirs = "6.0"
 openssl = { version = "0.10", features = ["vendored"] }

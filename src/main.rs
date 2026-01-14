@@ -1,4 +1,4 @@
-use quicli::prelude::*;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io;
@@ -274,7 +274,7 @@ fn url(url_key: Option<String>) -> Result<(), Error> {
     Ok(())
 }
 
-fn main() -> CliResult {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Cli::from_args();
 
     match args {
