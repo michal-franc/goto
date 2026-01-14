@@ -14,7 +14,7 @@ fmt:
 	cargo fmt
 
 install:
-	mv ./target/release/goto /usr/local/bin
+	cargo install --path .
 
 uninstall:
-	rm /usr/local/bin/goto
+	cargo uninstall goto 2>/dev/null || true
